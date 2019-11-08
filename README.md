@@ -7,9 +7,9 @@
 <details>
 <summary>阅读笔记</summary>
 <ol>
-  <li>亮点：通过A/B实验，收集不同排序ranker下相同doc的点击差异数据，作为训练集</li>
-  <li>亮点：利用该训练集中的position pair对（k^',k）来推算出每个位次上的浏览概率（examination probability）</li>
-  <li>亮点：可能的用法，利用examination probability对排序完的排序做一次rerank</li>
+  <li>zzz：通过A/B实验，收集不同排序ranker下相同doc的点击差异数据，作为训练集</li>
+  <li>andrew：利用该训练集中的position pair对（k^',k）来推算出每个位次上的浏览概率（examination probability）</li>
+  <li>andrew：可能的用法，利用examination probability对排序完的排序做一次rerank</li>
 </ol>
 </details>
 
