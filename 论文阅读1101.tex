@@ -1,0 +1,44 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\title{Estimating Position Bias without Intrusive Interventions 阅读笔记}
+\date{2019年11月1日}
+\begin{document}
+\maketitle
+\begin{abstract}
+将点击的概率拆分为在位置k上的曝光概率和<q,d>相关性的乘积。目标是从点击日志中统计出在位置k的曝光概率作为position bias。本文的亮点在于使用了不同ranker的日志，构造Interventional Sets，将相同<q,d>在不同ranker下不同位置的曝光记录作为有效的统计数据。
+\end{abstract}
+%\section{}
+\section{统计方式}
+\subsection{ Position-Based Propensity Model (PBM)}
+点击事件可以拆分为两部分：
+$$
+\begin{aligned} \operatorname{Pr}(\mathrm{C}=1 | q, d, k) &=\operatorname{Pr}(E=1 | k) \operatorname{rel}(q, d) \\ &=p_{k} \operatorname{rel}(q, d) \end{aligned}
+$$
+这里的$\operatorname{Pr}(E=1 | k) $，即位置k上曝光的概率(只和位置相关)，就是统计的目标。
+一种常用的统计方式是，将一部分排序在第1位的文档随机放置到第k个位置，统计第1位和第k位的点击率[注(个人理解)：这种交换的方式有一个亮点在于交换到第k位的<q,d>和在第一位的<q,d>的相关性的期望是相等的，所以位置点击率的比例能等同于位置曝光的比例，具体推导见原论文]：
+\begin{equation}
+\hat{c}_{1}^{1, k}=\frac{1}{n_{1}} \sum C_{1}^{i} 
+\end{equation}
+\begin{equation}
+\hat{c}_{k}^{1, k}=\frac{1}{n_{2}} \sum C_{k}^{j} 
+\end{equation}
+用这两者的比值作为位置k的position bias的一种无偏估计:
+\begin{equation}
+\frac{\hat{p}_{k}}{\hat{p}_{1}}=\frac{\hat{c}_{k}^{1, k}}{\hat{c}_{1}^{1, k}}
+\end{equation}
+然而，通过对排序结果随机交换并根据点击日志的统计点击率比例的方式会影响用户体验，因此只是一种理想的处理方式，本文通过不同ranker的历史点击日志来避开这种情况。
+\subsection{Interventional Sets from Multiple Rankers}
+在排序ranker经常更新的情况下，可以累积到不同ranker的历史点击日志，假定不同的ranker并不影响用户在搜索时时候的query，在这种情况下，来构建Interventional Sets:
+\begin{equation}
+\begin{aligned} S_{k, k^{\prime}}:=\{(q, d):& q \in Q, d \in \Omega(q) \\ &\left.\exists f, f^{\prime} \operatorname{rk}(d | f(q))=k \wedge \operatorname{rk}\left(d | f^{\prime}(q)\right)=k^{\prime}\right\} \end{aligned}
+\end{equation}
+统计方式为在同一<q,d>在不同ranker下被排在不同的位置，此外论文中只选取了每个query下的前10的doc。这样构造的集合中，可以得到同一个query在不同位置的点击率[注(个人理解):这里得到点击率之后不能用位置点击率的比例代替位置曝光的比例]。此后将点击的期望拆分成曝光和相关性的乘积。
+\subsection{最大似然估计求解}
+统计出位置点击率之后，将位置曝光率和关联性作为位置变量，用最大似然估计求解：
+\begin{equation}
+(\hat{p}, \hat{r})=\underset{p, r}{\operatorname{argmax}} \sum_{k \neq k^{\prime} \in[M]} \hat{c}_{k}^{k, k^{\prime}} \log \left(\hat{p}_{k} \hat{r}_{k, k^{\prime}}\right)+\hat{\neg} c_{k}^{k, k^{\prime}} \log \left(1-\hat{p}_{k} \hat{r}_{k, k^{\prime}}\right)
+\end{equation}
+计算出的$\hat{p}_{k}$就是目标位置曝光率
+\section{补充内容}
+可能的用法:利用examination probability对排序完的排序做一次rerank
+\end{document}
